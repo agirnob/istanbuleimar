@@ -1,0 +1,47 @@
+{
+  "name": "eimar-real",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "cheerio": "^1.0.0",
+    "framer-motion": "^11.2.0",
+    "lucide-react": "^0.378.0",
+    "maplibre-gl": "^5.0.0",
+    "next": "^14.2.0",
+    "puppeteer-core": "^25.1.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^20.14.0",
+    "@types/puppeteer": "^5.4.7",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^4.1.7",
+    "autoprefixer": "^10.4.0",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.4.0",
+    "prisma": "^5.14.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.5.0",
+    "vitest": "^4.1.7"
+  }
+}

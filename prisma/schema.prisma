@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Parcel {
+  id              String   @id @default(cuid())
+  objectId        Int      @unique
+  parcelNo        String
+  plotNo          String?
+  block           String?
+  neighborhood    String?
+  municipality    String
+  district        String?
+  sourceUrl       String?
+  planAdi         String?
+  fonksiyon       String?
+  tasdikTarihi    String?
+  olcek           String?
+  pafta           String?
+  hesapAlani      String?
+  binaYuksekligi  String?
+  onBahce         String?
+  yanBahce        String?
+  arkaBahce       String?
+  binaDerinligi   String?
+  katAdedi        String?
+  inaatNizami     String?
+  taks            String?
+  kaks            String?
+  kotAlinacakNokta String?
+  aciklama        String?
+  kisitlama       String?
+  projeksiyon     String?
+  kartezyenKoordinat String?
+  cografiKoordinat String?
+  rawResponse     String?
+  scrapedAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("parcels")
+  @@index([municipality, neighborhood])
+  @@index([objectId])
+  @@index([parcelNo])
+}
+
+model ScrapeJob {
+  id          String   @id @default(cuid())
+  municipality String
+  query       String
+  status      String   @default("pending")
+  resultCount Int      @default(0)
+  error       String?
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  @@map("scrape_jobs")
+}
+
+model MunicipalityConfig {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  baseUrl       String
+  searchUrl     String
+  detailUrl     String?
+  adapter       String
+  isActive      Boolean  @default(true)
+  config        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("municipality_configs")
+}
