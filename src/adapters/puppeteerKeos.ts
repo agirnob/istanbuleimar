@@ -1,7 +1,27 @@
 import { BaseScraper } from "@/services/scraper/base";
 import { ScrapeQuery, ScrapeResult, RawParcel } from "@/types/parcel";
 import { getMunicipality } from "@/lib/turkishFetch";
-import { getBrowser } from "@/services/puppeteer/browser";
+import { getBrowser, type PuppeteerBrowser } from "@/services/puppeteer/browser";
+
+type ImarPage = Awaited<ReturnType<PuppeteerBrowser["newPage"]>>;
+
+interface ImarSearchItem {
+  ADAPARSEL: string;
+  TAPU_MAH_ADI: string;
+  OBJECTID: number;
+  ADA?: string;
+}
+
+interface FetchResult {
+  error: string | null;
+  data: ImarSearchItem[] | null;
+}
+
+interface FormResultItem {
+  ADAPARSEL: string;
+  TAPU_MAH_ADI: string;
+  OBJECTID: number;
+}
 
 /**
  * Puppeteer-based scraper for KEOS/webgis municipalities that return 403
@@ -14,7 +34,7 @@ export class PuppeteerKeosScraper extends BaseScraper {
 
   constructor(municipalityKey: string) {
     super();
-    this.municipalityKey = municipalityKey.toLowerCase();
+    this.municipalityKey = municipalityKey.toLocaleLowerCase("tr");
     this.config = getMunicipality(this.municipalityKey)!;
   }
 
@@ -39,7 +59,7 @@ export class PuppeteerKeosScraper extends BaseScraper {
     );
 
     let browser;
-    let page;
+    let page: ImarPage | undefined;
     try {
       browser = await getBrowser();
       page = await browser.newPage();
@@ -59,7 +79,7 @@ export class PuppeteerKeosScraper extends BaseScraper {
         `[PuppeteerKeosScraper:${this.municipalityKey}] Fetching ${apiUrl} from page context`
       );
 
-      const fetchData = await page.evaluate(async (url, referer) => {
+      const fetchData: FetchResult = await page.evaluate(async (url: string, referer: string) => {
         try {
           const resp = await fetch(url, {
             headers: {
@@ -77,8 +97,8 @@ export class PuppeteerKeosScraper extends BaseScraper {
           } catch {
             return { error: `JSON parse failed: ${text.substring(0, 200)}`, data: null };
           }
-        } catch (e: any) {
-          return { error: e.message, data: null };
+        } catch (e: unknown) {
+          return { error: e instanceof Error ? e.message : String(e), data: null };
         }
       }, apiUrl, this.config.refererUrl);
 
@@ -88,6 +108,9 @@ export class PuppeteerKeosScraper extends BaseScraper {
         );
 
         // Fallback: try direct form interaction
+        if (!page) {
+          return { success: false, parcels: [], error: "Sayfa oluşturulamadı" };
+        }
         return this.searchViaForm(page, query);
       }
 
@@ -104,7 +127,7 @@ export class PuppeteerKeosScraper extends BaseScraper {
         `[PuppeteerKeosScraper:${this.municipalityKey}] Found ${data.length} results`
       );
 
-      const parcels: RawParcel[] = data.map((item: any) => {
+      const parcels: RawParcel[] = data.map((item: ImarSearchItem) => {
         const [ada, parsel] = (item.ADAPARSEL || "").split("/").map((s: string) => s.trim());
         return {
           parcelNo: String(item.OBJECTID),
@@ -138,7 +161,7 @@ export class PuppeteerKeosScraper extends BaseScraper {
    * Fallback: search by interacting with the form on the page
    */
   private async searchViaForm(
-    page: any,
+    page: ImarPage,
     query: string
   ): Promise<ScrapeResult> {
     console.log(
@@ -164,8 +187,8 @@ export class PuppeteerKeosScraper extends BaseScraper {
           await new Promise((r) => setTimeout(r, 3000));
 
           // Try to extract results from the page
-          const results = await page.evaluate(() => {
-            const items: any[] = [];
+          const results: FormResultItem[] = await page.evaluate(() => {
+            const items: FormResultItem[] = [];
             const rows = document.querySelectorAll("tr");
             for (const row of rows) {
               const cells = row.querySelectorAll("td");
@@ -185,7 +208,7 @@ export class PuppeteerKeosScraper extends BaseScraper {
           });
 
           if (results.length > 0) {
-            const parcels: RawParcel[] = results.map((item: any) => ({
+            const parcels: RawParcel[] = results.map((item: FormResultItem) => ({
               parcelNo: String(item.OBJECTID),
               plotNo: item.ADAPARSEL?.split("/")[1],
               block: item.ADAPARSEL?.split("/")[0],

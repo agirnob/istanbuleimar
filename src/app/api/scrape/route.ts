@@ -1,56 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getScraper, getAvailableMunicipalities } from "@/services/scraper/registry";
-import "@/adapters";
+import { sanitizeInput, validateMunicipality, rateLimiter, getClientIp } from "@/lib/sanitization";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  if (!rateLimiter.isAllowed(ip)) {
+    return NextResponse.json({ error: "Çok fazla istek, lütfen bekleyin" }, { status: 429 });
+  }
+
   try {
     const body = await request.json();
-    const { municipality, query, queryType } = body;
+    const municipality = validateMunicipality(body.municipality) || "eyupsultan";
+    const query = sanitizeInput(body.query);
+    const queryType = (sanitizeInput(body.queryType) || "parcel") as "parcel" | "block" | "neighborhood";
 
     if (!query) {
-      return NextResponse.json(
-        { error: "Sorgu gerekli" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Sorgu gerekli (query)" }, { status: 400 });
     }
 
-    const scraper = getScraper(municipality || "eyupsultan");
+    console.log(`[API/scrape] Request: municipality=${municipality}, query="${query}", type=${queryType}`);
+
+    // Lazy import to avoid ESM issues during build
+    const { getScraper } = await import("@/services/scraper/registry");
+    const { initAdapters } = await import("@/adapters");
+
+    await initAdapters();
+
+    const scraper = getScraper(municipality);
     if (!scraper) {
-      return NextResponse.json(
-        { error: "Belediye bulunamadı", available: getAvailableMunicipalities() },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: `Belediye bulunamadı: ${municipality}` }, { status: 404 });
     }
 
-    const result = await scraper.scrape({
-      municipality: scraper.municipality,
-      query,
-      queryType: queryType || "parcel",
-    });
+    const result = await scraper.scrape({ municipality, query, queryType });
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
     return NextResponse.json({
-      success: true,
       parcels: result.parcels,
       count: result.parcels.length,
-      sourceUrl: result.sourceUrl,
+      municipality,
     });
   } catch (error) {
+    console.error(`[API/scrape] Error: ${error}`);
     return NextResponse.json(
-      { error: "İşlem hatası" },
+      { error: error instanceof Error ? error.message : "İşlem hatası" },
       { status: 500 }
     );
   }
-}
-
-export async function GET() {
-  return NextResponse.json({
-    municipalities: getAvailableMunicipalities(),
-  });
 }

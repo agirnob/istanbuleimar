@@ -1,5 +1,6 @@
 import { BaseScraper } from "@/services/scraper/base";
 import { ScrapeQuery, ScrapeResult, RawParcel } from "@/types/parcel";
+import { searchParcelFor, getParcelInfoFor, getMahallelerFor, getMunicipality, getTapuMahalleleriFor } from "@/lib/turkishFetch";
 
 const IMAR_BASE = "https://keos.eyupsultan.bel.tr/imardurumu";
 const SERVICE_URL = `${IMAR_BASE}/service/imarsvc.aspx`;
@@ -61,20 +62,10 @@ export class EyupsultanScraper extends BaseScraper {
   private async searchParcel(query: string): Promise<ScrapeResult> {
     console.log(`[EyupsultanScraper] Searching parcel: "${query}"`);
     try {
-      const url = `${SERVICE_URL}?type=adaparsel&adaparsel=${encodeURIComponent(query)}`;
-      const response = await fetch(url, {
-        headers: {
-          "Accept": "application/json",
-          "Referer": this.searchUrl,
-        },
-        cache: "no-store",
-      });
+      const config = getMunicipality("eyupsultan");
+      if (!config) throw new Error("Eyüpsultan belediyesi yapılandırması bulunamadı");
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data: ImarSearchResult[] = await response.json();
+      const data = await searchParcelFor(config, query);
 
       if (!Array.isArray(data)) {
         throw new Error("Beklenmeyen API yanıt formatı");
@@ -119,20 +110,10 @@ export class EyupsultanScraper extends BaseScraper {
     error?: string;
   }> {
     try {
-      const parselUrl = `${SERVICE_URL}?type=parsel&parselid=${parcelId}`;
-      const response = await fetch(parselUrl, {
-        headers: {
-          "Accept": "application/json",
-          "Referer": this.searchUrl,
-        },
-        cache: "no-store",
-      });
+      const config = getMunicipality("eyupsultan");
+      if (!config) throw new Error("Eyüpsultan belediyesi yapılandırması bulunamadı");
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data: ImarSearchResult[] = await response.json();
+      const data = await getParcelInfoFor(config, parcelId);
 
       if (!Array.isArray(data) || data.length === 0) {
         return {
@@ -168,22 +149,9 @@ export class EyupsultanScraper extends BaseScraper {
 
   async getNeighborhoods(): Promise<string[]> {
     try {
-      const response = await fetch(
-        `${SERVICE_URL}?type=mahalle`,
-        {
-          headers: {
-            "Accept": "application/json",
-            "Referer": this.searchUrl,
-          },
-          cache: "no-store",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data: { ADI_NUMARASI: string; OBJECTID: number }[] = await response.json();
+      const config = getMunicipality("eyupsultan");
+      if (!config) return [];
+      const data = await getMahallelerFor(config);
       return data.map(item => item.ADI_NUMARASI);
     } catch {
       return [];
@@ -192,22 +160,9 @@ export class EyupsultanScraper extends BaseScraper {
 
   async getTapuMahalleleri(): Promise<string[]> {
     try {
-      const response = await fetch(
-        `${SERVICE_URL}?type=tapuMahalle`,
-        {
-          headers: {
-            "Accept": "application/json",
-            "Referer": this.searchUrl,
-          },
-          cache: "no-store",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data: { TAPU_MAH_ADI: string }[] = await response.json();
+      const config = getMunicipality("eyupsultan");
+      if (!config) return [];
+      const data = await getTapuMahalleleriFor(config);
       return data.map(item => item.TAPU_MAH_ADI);
     } catch {
       return [];

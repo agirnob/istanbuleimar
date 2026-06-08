@@ -48,7 +48,7 @@ export default function SearchContent() {
 
         if (!res.ok) {
           console.error(`[SearchContent] API error: ${data.error}`);
-          setError(data.error || "Bir hata olu\u015ftu");
+          setError(data.error || "Bir hata oluştu");
           setResults([]);
           return;
         }
@@ -64,7 +64,7 @@ export default function SearchContent() {
 
         if (!res.ok) {
           console.error(`[SearchContent] API error: ${data.error}`);
-          setError(data.error || "Bir hata olu\u015ftu");
+          setError(data.error || "Bir hata oluştu");
           setResults([]);
           return;
         }
@@ -74,7 +74,7 @@ export default function SearchContent() {
       }
     } catch (err) {
       console.error(`[SearchContent] Request failed: ${err}`);
-      setError("Ba\u011flant\u0131 hatas\u0131");
+      setError("Bağlantı hatası");
       setResults([]);
     } finally {
       setLoading(false);
@@ -92,10 +92,10 @@ export default function SearchContent() {
           onClick={() => router.push("/")}
           className="mb-6 text-sm text-blue-600 hover:underline"
         >
-          \u2190 Ana Sayfaya D\u00f6n
+          ← Ana Sayfaya Dön
         </button>
 
-        <h1 className="text-2xl font-bold mb-2">Arama Sonu\u00e7lar\u0131</h1>
+        <h1 className="text-2xl font-bold mb-2">Arama Sonuçları</h1>
         <p className="text-gray-500 mb-6">
           Sorgu:{" "}
           <span className="font-medium text-gray-700">"{q}"</span>
@@ -116,7 +116,7 @@ export default function SearchContent() {
           )}
           {kapiNo && (
             <span className="ml-2 text-xs rounded bg-orange-100 px-2 py-0.5 text-orange-700">
-              Kap\u0131: {kapiNo}
+              Kapı: {kapiNo}
             </span>
           )}
         </p>
@@ -124,7 +124,7 @@ export default function SearchContent() {
         {loading && (
           <div className="flex items-center justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <span className="ml-3 text-gray-500">Parseller araniyor...</span>
+            <span className="ml-3 text-gray-500">Parseller aranıyor...</span>
           </div>
         )}
 
@@ -136,7 +136,7 @@ export default function SearchContent() {
 
         {!loading && !error && results.length === 0 && (
           <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">
-            Sonu\u00e7 bulunamad\u0131. Farkl\u0131 bir ada/parsel numaras\u0131
+            Sonuç bulunamadı. Farklı bir ada/parsel numarası
             deneyin.
           </div>
         )}
@@ -172,7 +172,7 @@ export default function SearchContent() {
                     rel="noopener noreferrer"
                     className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
                   >
-                    Kaynak \u2192
+                    Kaynak →
                   </a>
                   <a
                     href={`/parcel/${parcel.parcelNo}?municipality=${municipality}`}

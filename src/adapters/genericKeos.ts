@@ -8,7 +8,7 @@ export class GenericKeosScraper extends BaseScraper {
 
   constructor(municipalityKey: string) {
     super();
-    this.municipalityKey = municipalityKey.toLowerCase();
+    this.municipalityKey = municipalityKey.toLocaleLowerCase("tr");
     this.config = getMunicipality(this.municipalityKey)!;
   }
 

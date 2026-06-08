@@ -17,7 +17,9 @@ export interface RawParcel {
 export interface ScrapeQuery {
   municipality: string;
   query: string;
-  queryType: "parcel" | "block" | "neighborhood";
+  queryType: "parcel" | "block" | "neighborhood" | "neighborhoods" | "streets" | "doors";
+  mahalleId?: string;
+  yolId?: string;
 }
 
 export interface ScrapeResult {

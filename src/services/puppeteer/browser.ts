@@ -1,6 +1,6 @@
 import puppeteerCore from "puppeteer-core";
 
-type PuppeteerBrowser = ReturnType<typeof puppeteerCore.launch> extends Promise<infer T>
+export type PuppeteerBrowser = ReturnType<typeof puppeteerCore.launch> extends Promise<infer T>
   ? T
   : never;
 

@@ -50,12 +50,12 @@ describe("imarDetailScraper", () => {
   }, 30000);
 
   it("should scrape pendik parcel 12450", async () => {
-    const result = await scrapeImarDetail(12450, "pendik");
+    const result = await scrapeImarDetail(12450, "pendik", 30000);
 
     expect(result.error).toBeUndefined();
     expect(result.planInfo).toBeDefined();
     expect(result.planInfo?.mahalle).toBeDefined();
-  }, 30000);
+  }, 60000);
 
   it("should scrape gaziosmanpasa parcel 4819", async () => {
     const result = await scrapeImarDetail(4819, "gaziosmanpasa");
